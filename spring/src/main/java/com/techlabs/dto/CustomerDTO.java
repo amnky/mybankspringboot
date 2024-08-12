@@ -14,7 +14,6 @@ public class CustomerDTO {
     private String address;
     private String email;
     private String uniqueIdentificationNumber;
-    private RoleType role;
 
     public CustomerDTO() {
     }
@@ -36,14 +35,13 @@ public class CustomerDTO {
     }
 
     public CustomerDTO(String firstName, String lastName, String nomineeName, String address, String email,
-                       String uniqueIdentificationNumber, RoleType role) {
+                       String uniqueIdentificationNumber) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.nomineeName = nomineeName;
         this.address = address;
         this.email = email;
         this.uniqueIdentificationNumber = uniqueIdentificationNumber;
-        this.role = role;
     }
 
     public String getFirstName() {
@@ -94,11 +92,4 @@ public class CustomerDTO {
         this.uniqueIdentificationNumber = uniqueIdentificationNumber;
     }
 
-    public RoleType getRole() {
-        return role;
-    }
-
-    public void setRole(RoleType role) {
-        this.role = role;
-    }
 }

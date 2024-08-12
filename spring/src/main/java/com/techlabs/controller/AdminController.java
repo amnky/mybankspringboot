@@ -8,6 +8,7 @@ import com.techlabs.service.AdminService;
 import com.techlabs.service.CustomerService;
 import com.techlabs.service.TransactionService;
 import com.techlabs.utils.PagedResponse;
+import jakarta.validation.Valid;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -99,7 +100,7 @@ public class AdminController {
 
     @PostMapping("/customers/{id}")
     ResponseEntity<CustomerResponseDTO> updateCustomer(@PathVariable("id") int customerId,
-                                                       @RequestBody CustomerDTO customerDTO
+                                                       @Valid @RequestBody CustomerDTO customerDTO
     ){
         CustomerResponseDTO customerResponseDTO=customerService.updateCustomerById(customerId,customerDTO);
         return new ResponseEntity<>(customerResponseDTO, HttpStatus.OK);
@@ -130,6 +131,20 @@ public class AdminController {
     ResponseEntity<HttpStatus> deleteCustomerRequest(@PathVariable("id") int customerId){
         adminService.deleteCustomerRequest(customerId);
         return new ResponseEntity<>(HttpStatus.OK);
+    }
+    @PostMapping("/activate-customer/{cid}")
+    ResponseEntity<HttpStatus>activateCustomer(@PathVariable("cid")int customerId){
+        adminService.activateCustomer(customerId);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+    @GetMapping("/inactive-customers")
+    ResponseEntity<PagedResponse<CustomerResponseDTO>>seeInActiveCustomers(@RequestParam(name="pageNo",defaultValue = "0") int pageNo,
+                                                                       @RequestParam(name="size",defaultValue = "10") int size,
+                                                                       @RequestParam(name="sort",defaultValue = "ASC") String sort,
+                                                                       @RequestParam(name="sortBy",defaultValue = "firstName") String sortBy,
+                                                                       @RequestParam(name="sortDirection",defaultValue = "ASC") String sortDirection){
+        PagedResponse<CustomerResponseDTO> inActiveCustomers= adminService.inActiveCustomer(pageNo,size,sort,sortBy,sortDirection);
+        return new ResponseEntity<>(inActiveCustomers,HttpStatus.OK);
     }
 
 }

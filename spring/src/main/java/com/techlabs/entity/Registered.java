@@ -40,23 +40,19 @@ public class Registered {
     @NotBlank
     private String uniqueIdentificationNumber;
 
-    @Column(name="user_role")
-    @NotBlank
-    private RoleType roleType;
 
     public Registered() {
     }
-    public Registered( String firstName, String lastName, String nomineeName, String address,String email,String uniqueIdentificationNumber,RoleType roleType) {
+    public Registered( String firstName, String lastName, String nomineeName, String address,String email,String uniqueIdentificationNumber) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.nomineeName = nomineeName;
         this.address = address;
         this.email=email;
         this.uniqueIdentificationNumber=uniqueIdentificationNumber;
-        this.roleType=roleType;
     }
 
-    public Registered(int id, String firstName, String lastName, String nomineeName, String address,String email,String uniqueIdentificationNumber,RoleType roleType) {
+    public Registered(int id, String firstName, String lastName, String nomineeName, String address,String email,String uniqueIdentificationNumber) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -64,7 +60,6 @@ public class Registered {
         this.address = address;
         this.email=email;
         this.uniqueIdentificationNumber=uniqueIdentificationNumber;
-        this.roleType=roleType;
     }
     // Getters and Setters
 
@@ -124,14 +119,6 @@ public class Registered {
         this.uniqueIdentificationNumber = uniqueIdentificationNumber;
     }
 
-    public RoleType getRoleType() {
-        return roleType;
-    }
-
-    public void setRoleType(RoleType roleType) {
-        this.roleType = roleType;
-    }
-
     @Override
     public String toString() {
         return "Registered{" +
@@ -141,8 +128,6 @@ public class Registered {
                 ", nomineeName='" + nomineeName + '\'' +
                 ", address='" + address + '\'' +
                 ", email='" + email + '\'' +
-                ", uniqueIdentificationNumber='" + uniqueIdentificationNumber + '\'' +
-                ", roleType=" + roleType +
                 '}';
     }
 }

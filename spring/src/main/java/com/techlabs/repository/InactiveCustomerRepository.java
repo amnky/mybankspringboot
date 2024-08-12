@@ -6,4 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface InactiveCustomerRepository extends JpaRepository<InactiveCustomer,Integer> {
+    InactiveCustomer findByCustomerId(int customerId);
 }

@@ -18,11 +18,11 @@ public class Account {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @NotNull
     @Column(name = "account_number")
-    @NotNull
+    @NotNull(message = "account number can't be null")
     private int AccountNumber;
 
     @Column(name = "customer_id")
-    @NotNull
+    @NotNull(message = "customerId can't be null")
     private int customerId;
     @Column(name = "unique_identification_number")
     @NotBlank(message = "unique identification number can't be null")

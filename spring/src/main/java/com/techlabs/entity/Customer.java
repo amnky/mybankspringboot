@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.sql.Date;
 import java.time.LocalDateTime;
@@ -37,10 +38,6 @@ public class Customer {
     @NotNull
     private String email;
 
-    @Column(name="account_type")
-    @NotNull
-    private AccountType accountType;
-
     @Column(name="customer_address")
     @NotNull
     private String  customerAddress;
@@ -50,11 +47,11 @@ public class Customer {
     private String nomineeName;
 
     @Column(name="balance")
-    @NotBlank
+    @NotNull
     private int balance;
 
     @Column(name="account_open_date")
-    @NotBlank
+    @DateTimeFormat
     private LocalDateTime accountOpenDate;
 
     @Column(name="identification_number")
@@ -62,13 +59,12 @@ public class Customer {
     private int identificationNumber;
     public Customer(){}
 
-    public Customer(int customerId, int accountNumber, String firstName, String lastName, String email, AccountType accountType, String customerAddress, String nomineeName, int balance, LocalDateTime accountOpenDate, int identificationNumber) {
+    public Customer(int customerId, int accountNumber, String firstName, String lastName, String email, String customerAddress, String nomineeName, int balance, LocalDateTime accountOpenDate, int identificationNumber) {
         this.customerId = customerId;
         this.accountNumber = accountNumber;
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
-        this.accountType = accountType;
         this.customerAddress = customerAddress;
         this.nomineeName = nomineeName;
         this.balance = balance;
@@ -140,14 +136,6 @@ public class Customer {
         this.balance = balance;
     }
 
-    public AccountType getAccountType() {
-        return accountType;
-    }
-
-    public void setAccountType(AccountType accountType) {
-        this.accountType = accountType;
-    }
-
     public LocalDateTime getAccountOpenDate() {
         return accountOpenDate;
     }
@@ -172,7 +160,6 @@ public class Customer {
                 ", firstName='" + firstName + '\'' +
                 ", lastName='" + lastName + '\'' +
                 ", email='" + email + '\'' +
-                ", accountType=" + accountType +
                 ", customerAddress='" + customerAddress + '\'' +
                 ", nomineeName='" + nomineeName + '\'' +
                 ", balance=" + balance +

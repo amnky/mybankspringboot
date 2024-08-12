@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.sql.Date;
 import java.time.LocalDateTime;
@@ -43,10 +44,6 @@ public class InactiveCustomer {
     @Email
     private String email;
 
-    @Column(name="account_type")
-    @NotBlank
-    private AccountType accountType;
-
     @Column(name="customer_address")
     @NotBlank
     private String  customerAddress;
@@ -60,20 +57,19 @@ public class InactiveCustomer {
     private int balance;
 
     @Column(name="account_open_date")
-    @NotBlank
+    @DateTimeFormat
     private LocalDateTime accountOpenDate;
 
     @Column(name="identification_number")
     @NotNull
     private int identificationNumber;
     public InactiveCustomer(){}
-    public InactiveCustomer(int customerId, int accountNumber, String firstName, String lastName, String email, AccountType accountType, String customerAddress, String nomineeName, int balance, LocalDateTime accountOpenDate, int identificationNumber) {
+    public InactiveCustomer(int customerId, int accountNumber, String firstName, String lastName, String email, String customerAddress, String nomineeName, int balance, LocalDateTime accountOpenDate, int identificationNumber) {
         this.customerId = customerId;
         this.accountNumber = accountNumber;
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
-        this.accountType = accountType;
         this.customerAddress = customerAddress;
         this.nomineeName = nomineeName;
         this.balance = balance;
@@ -81,14 +77,13 @@ public class InactiveCustomer {
         this.identificationNumber = identificationNumber;
     }
 
-    public InactiveCustomer(int inactiveId,int customerId, int accountNumber, String firstName, String lastName, String email, AccountType accountType, String customerAddress, String nomineeName, int balance, LocalDateTime accountOpenDate, int identificationNumber) {
+    public InactiveCustomer(int inactiveId,int customerId, int accountNumber, String firstName, String lastName, String email, String customerAddress, String nomineeName, int balance, LocalDateTime accountOpenDate, int identificationNumber) {
         this.inactiveId=inactiveId;
         this.customerId = customerId;
         this.accountNumber = accountNumber;
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
-        this.accountType = accountType;
         this.customerAddress = customerAddress;
         this.nomineeName = nomineeName;
         this.balance = balance;
@@ -161,14 +156,6 @@ public class InactiveCustomer {
         this.balance = balance;
     }
 
-    public AccountType getAccountType() {
-        return accountType;
-    }
-
-    public void setAccountType(AccountType accountType) {
-        this.accountType = accountType;
-    }
-
     public LocalDateTime getAccountOpenDate() {
         return accountOpenDate;
     }
@@ -193,7 +180,6 @@ public class InactiveCustomer {
                 ", firstName='" + firstName + '\'' +
                 ", lastName='" + lastName + '\'' +
                 ", email='" + email + '\'' +
-                ", accountType=" + accountType +
                 ", customerAddress='" + customerAddress + '\'' +
                 ", nomineeName='" + nomineeName + '\'' +
                 ", balance=" + balance +

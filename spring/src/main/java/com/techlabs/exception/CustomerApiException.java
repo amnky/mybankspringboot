@@ -2,17 +2,17 @@ package com.techlabs.exception;
 
 import org.springframework.http.HttpStatus;
 
-public class StudentApiException extends RuntimeException {
+public class CustomerApiException extends RuntimeException {
     private static final long serialVersionUID = 1L;
     private HttpStatus status;
     private String message;
 
-    public StudentApiException(HttpStatus status, String message) {
+    public CustomerApiException(HttpStatus status, String message) {
         this.status = status;
         this.message = message;
     }
 
-    public StudentApiException(String message, HttpStatus status, String message1) {
+    public CustomerApiException(String message, HttpStatus status, String message1) {
         super(message);
         this.status = status;
         this.message = message1;

@@ -12,4 +12,8 @@ public interface AdminService {
     CustomerResponseDTO verifyAndAddAccount(int customerId);
 
     void deleteCustomerRequest(int customerId);
+
+    void activateCustomer(int customerId);
+
+    PagedResponse<CustomerResponseDTO> inActiveCustomer(int pageNo, int size, String sort, String sortBy, String sortDirection);
 }

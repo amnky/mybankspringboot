@@ -35,7 +35,7 @@ public class Transaction {
     @NotNull
     @Column(name="customer_id")
     private int customerId;
-    @NotNull
+
     @Column(name="transaction_time")
     private LocalDateTime transactionTime;
 

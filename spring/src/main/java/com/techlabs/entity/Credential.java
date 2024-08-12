@@ -24,7 +24,6 @@ public class Credential {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false)
-    @NotBlank
     private Role role;
 
     // Getters and Setters

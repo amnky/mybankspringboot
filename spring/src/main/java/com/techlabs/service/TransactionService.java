@@ -16,4 +16,6 @@ public interface TransactionService {
     TransferResponseDTO performTransaction(int customerId, TransactionDTO transactionDTO);
 
     ByteArrayInputStream generateXlsxFile(List<TransactionResponseDTO> transactions);
+
+    int allAccountBalances(int customerId);
 }

@@ -5,7 +5,6 @@ public class CustomerResponseDTO {
     private String lastName;
     private int accountNumber;
     private int balance;
-    private String role;
     private int customerId;
     public CustomerResponseDTO(){}
 
@@ -22,17 +21,15 @@ public class CustomerResponseDTO {
         this.balance = balance;
         this.customerId=customerId;
     }
-    public CustomerResponseDTO(String firstName, String lastName,String role,int customerId) {
+    public CustomerResponseDTO(String firstName, String lastName,int customerId) {
         this.firstName = firstName;
         this.lastName = lastName;
-        this.role = role;
         this.customerId=customerId;
 
     }
-    public CustomerResponseDTO(String firstName, String lastName,String role) {
+    public CustomerResponseDTO(String firstName, String lastName) {
         this.firstName = firstName;
         this.lastName = lastName;
-        this.role = role;
 
     }
 
@@ -69,13 +66,6 @@ public class CustomerResponseDTO {
         this.balance = balance;
     }
 
-    public String getRole() {
-        return role;
-    }
-
-    public void setRole(String role) {
-        this.role = role;
-    }
 
     public int getCustomerId() {
         return customerId;

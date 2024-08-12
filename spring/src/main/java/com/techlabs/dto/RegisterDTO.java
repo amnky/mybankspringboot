@@ -21,10 +21,9 @@ public class RegisterDTO {
     private String email;
     @NotBlank
     private String uniqueIdentificationNumber;
-    private RoleType role;
 
     public RegisterDTO(int id, String firstName, String lastName, String nomineeName, String address,
-                       String email, String uniqueIdentificationNumber, RoleType role) {
+                       String email, String uniqueIdentificationNumber) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -32,7 +31,6 @@ public class RegisterDTO {
         this.address = address;
         this.email = email;
         this.uniqueIdentificationNumber = uniqueIdentificationNumber;
-        this.role = role;
     }
 
     public int getId() {
@@ -89,13 +87,5 @@ public class RegisterDTO {
 
     public void setUniqueIdentificationNumber(String uniqueIdentificationNumber) {
         this.uniqueIdentificationNumber = uniqueIdentificationNumber;
-    }
-
-    public RoleType getRole() {
-        return role;
-    }
-
-    public void setRole(RoleType role) {
-        this.role = role;
     }
 }

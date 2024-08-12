@@ -5,6 +5,8 @@ import com.techlabs.dto.TransactionResponseDTO;
 import com.techlabs.dto.TransferResponseDTO;
 import com.techlabs.entity.Customer;
 import com.techlabs.entity.Transaction;
+import com.techlabs.exception.CustomerNotFoundException;
+import com.techlabs.exception.TransactionException;
 import com.techlabs.repository.CustomerRepository;
 import com.techlabs.repository.TransactionRepository;
 import com.techlabs.utils.PagedResponse;
@@ -32,12 +34,15 @@ public class TransactionServiceImp implements TransactionService {
 
     @Autowired
     private final TransactionRepository transactionRepository;
+    @Autowired
+    private final EmailService emailService;
 
     @Autowired
     private final CustomerRepository customerRepository;
 
-    public TransactionServiceImp(TransactionRepository transactionRepository, CustomerRepository customerRepository) {
+    public TransactionServiceImp(TransactionRepository transactionRepository, EmailService emailService, CustomerRepository customerRepository) {
         this.transactionRepository = transactionRepository;
+        this.emailService = emailService;
         this.customerRepository = customerRepository;
     }
 
@@ -76,23 +81,30 @@ public class TransactionServiceImp implements TransactionService {
     @Override
     public TransferResponseDTO performTransaction(int customerId, TransactionDTO transactionDTO) {
         checkAccess(customerId);
-        Customer customer = customerRepository.findById(customerId).orElse(null);
+        Customer customer = customerRepository.findById(customerId).orElseThrow(() -> new CustomerNotFoundException("customer with id was not found"+customerId));
         try {
-            assert customer != null;
+            if(customer==null){
+                throw new CustomerNotFoundException("customer not found");
+            }
             boolean isValidBalance = checkBalance(customer,customerId, transactionDTO.getTransactionAmount());
             if (!isValidBalance) {
                 Transaction transaction = convertDtoToTransaction(transactionDTO, customer, false);
                 transactionRepository.save(transaction);
-                return null;
-
+                throw new TransactionException("can't complete transaction");
             }
-            customer.setBalance(customer.getBalance() - transactionDTO.getTransactionAmount());
+            int newBalance=customer.getBalance() - transactionDTO.getTransactionAmount();
+            customer.setBalance(newBalance);
             Customer updatedCustomer = customerRepository.save(customer);
-            transferAmountToReceiverAccount(transactionDTO.getReceiverAccountNumber(),transactionDTO.getTransactionAmount());
+            int receiverAccountNo=transferAmountToReceiverAccount(transactionDTO,customer.getAccountNumber());
             Transaction transaction = convertDtoToTransaction(transactionDTO, updatedCustomer, true);
             transactionRepository.save(transaction);
+            String emailReceiver=customer.getEmail();
+            emailService.sendEmailToSender(emailReceiver,receiverAccountNo,transaction.getTransactionAmount(),newBalance);
             return transactionToResponseDTO(transaction, updatedCustomer.getBalance());
         } catch (Exception ignored) {
+            if(customer==null){
+                throw new CustomerNotFoundException("customer not found");
+            }
             Transaction transaction = convertDtoToTransaction(transactionDTO, customer, false);
             Transaction savedTransaction=transactionRepository.save(transaction);
             return transactionToResponseDTO(savedTransaction, customer.getBalance());
@@ -154,10 +166,21 @@ public class TransactionServiceImp implements TransactionService {
         }
     }
 
-    private void transferAmountToReceiverAccount(int receiverAccountNumber,int receivedAmount) {
-        Customer customer=customerRepository.findByAccountNumber(receiverAccountNumber);
-        customer.setBalance(customer.getBalance()+receivedAmount);
-        customerRepository.save(customer);
+    @Override
+    public int allAccountBalances(int customerId) {
+        checkAccess(customerId);
+        int identity=customerRepository.findUniqueIdentityByCustomerId(customerId);
+        return customerRepository.findBalancesByUniqueIdentity(identity);
+    }
+
+    private int transferAmountToReceiverAccount(TransactionDTO transactionDTO,int SenderAccountNo) {
+        Customer customer=customerRepository.findByAccountNumber(transactionDTO.getReceiverAccountNumber());
+        int addedBalance=customer.getBalance()+transactionDTO.getTransactionAmount();
+        customer.setBalance(addedBalance);
+        customer=customerRepository.save(customer);
+        String mailReceiver=customer.getEmail();
+        emailService.sendEmailToReceiver(mailReceiver,SenderAccountNo,transactionDTO.getTransactionAmount(), addedBalance);
+        return customer.getAccountNumber();
     }
 
     private TransferResponseDTO transactionToResponseDTO(Transaction transaction, int balance) {
@@ -171,10 +194,12 @@ public class TransactionServiceImp implements TransactionService {
     }
 
     private boolean checkBalance(Customer customer,int customerId, int transactionAmount) {
-        assert customer != null;
+        if(customer==null){
+            throw new CustomerNotFoundException("customer not found");
+        }
         if (transactionAmount > customer.getBalance()) {
-//            generate exception of your balance is less than transfer amount
-            return false;
+            throw  new TransactionException("your balance is less than transactionAmount");
+
         }
         return true;
     }

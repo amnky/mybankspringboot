@@ -8,7 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
-import com.techlabs.exception.StudentApiException;
+import com.techlabs.exception.CustomerApiException;
 
 import java.security.Key;
 import java.util.Date;
@@ -67,13 +67,13 @@ public class JwtTokenProvider {
                     .parse(token);
             return true;
         } catch (MalformedJwtException ex) {
-            throw new StudentApiException(HttpStatus.BAD_REQUEST, "Invalid JWT token");
+            throw new CustomerApiException(HttpStatus.BAD_REQUEST, "Invalid JWT token");
         } catch (ExpiredJwtException ex) {
-            throw new StudentApiException(HttpStatus.BAD_REQUEST, "Expired JWT token");
+            throw new CustomerApiException(HttpStatus.BAD_REQUEST, "Expired JWT token");
         } catch (UnsupportedJwtException ex) {
-            throw new StudentApiException(HttpStatus.BAD_REQUEST, "Unsupported JWT token");
+            throw new CustomerApiException(HttpStatus.BAD_REQUEST, "Unsupported JWT token");
         } catch (IllegalArgumentException ex) {
-            throw new StudentApiException(HttpStatus.BAD_REQUEST, "JWT claims string is empty.");
+            throw new CustomerApiException(HttpStatus.BAD_REQUEST, "JWT claims string is empty.");
         }
     }
 }

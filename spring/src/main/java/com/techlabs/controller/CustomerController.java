@@ -5,6 +5,7 @@ import com.techlabs.dto.*;
 import com.techlabs.service.CustomerService;
 import com.techlabs.service.TransactionService;
 import com.techlabs.utils.PagedResponse;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -29,7 +30,7 @@ public class CustomerController {
     }
     @PostMapping("/profile/{id}")
     ResponseEntity<CustomerResponseDTO> updateProfile(@PathVariable("id")int customerId,
-                                                      @RequestBody UpdateProfileDTO updateProfileDTO){
+                                                      @Valid @RequestBody UpdateProfileDTO updateProfileDTO){
         CustomerResponseDTO customerResponseDTO=customerService.updateProfile(customerId,updateProfileDTO);
         return  new ResponseEntity<>(customerResponseDTO, HttpStatus.OK);
     }
@@ -45,11 +46,15 @@ public class CustomerController {
     }
     @PostMapping("/transactions/{id}")
     ResponseEntity<TransferResponseDTO>performTransaction(@PathVariable("id") int customerId,
-                                                          @RequestBody TransactionDTO transactionDTO){
+                                                          @Valid @RequestBody TransactionDTO transactionDTO){
 
         TransferResponseDTO transferResponseDTO=transactionService.performTransaction(customerId,transactionDTO);
         return new ResponseEntity<>(transferResponseDTO,HttpStatus.OK);
-
+    }
+    @GetMapping("/accounts-balances/{cid}")
+    ResponseEntity<Integer>allBalances(@PathVariable("cid")int customerId){
+        int allbalance=transactionService.allAccountBalances(customerId);
+        return new ResponseEntity<Integer>(allbalance,HttpStatus.OK);
     }
     @PostMapping("/auth/{id}")
     ResponseEntity<HttpStatus> updatedCustomerPassword(@PathVariable("id") int customerId,@RequestBody String password){

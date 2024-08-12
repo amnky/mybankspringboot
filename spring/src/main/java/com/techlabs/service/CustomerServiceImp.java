@@ -5,9 +5,12 @@ import com.techlabs.dto.CustomerResponseDTO;
 import com.techlabs.dto.UpdateProfileDTO;
 import com.techlabs.entity.Credential;
 import com.techlabs.entity.Customer;
+import com.techlabs.exception.CustomerApiException;
+import com.techlabs.exception.CustomerNotFoundException;
 import com.techlabs.repository.AuthRepository;
 import com.techlabs.repository.CustomerRepository;
 import com.techlabs.repository.TransactionRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -21,7 +24,9 @@ public class CustomerServiceImp implements CustomerService{
     private final TransactionRepository transactionRepository;
     private final AuthRepository authRepository;
 
-    public CustomerServiceImp(CustomerRepository customerRepository, TransactionRepository transactionRepository, AuthRepository authRepository) {
+    public CustomerServiceImp(CustomerRepository customerRepository,
+                              TransactionRepository transactionRepository,
+                              AuthRepository authRepository) {
         this.customerRepository = customerRepository;
         this.transactionRepository = transactionRepository;
         this.authRepository = authRepository;
@@ -31,8 +36,8 @@ public class CustomerServiceImp implements CustomerService{
     public CustomerResponseDTO findCustomerById(int customerId) {
         checkAccess(customerId);
 //        generate error in null part
-        Customer customer= customerRepository.findById(customerId).orElse(null);
-        assert customer != null;
+        Customer customer= customerRepository.findById(customerId)
+                .orElseThrow(() -> new CustomerNotFoundException("customer with id was not found"+customerId));
         return CustomerToDTO(customer);
 
     }
@@ -40,8 +45,8 @@ public class CustomerServiceImp implements CustomerService{
     @Override
     public CustomerResponseDTO updateCustomerById(int customerId, CustomerDTO customerDTO) {
         checkAccess(customerId);
-        Customer customer=customerRepository.findById(customerId).orElse(null);
-        assert customer != null;
+        Customer customer=customerRepository.findById(customerId)
+                .orElseThrow(() -> new CustomerNotFoundException("customer with id was not found"+customerId));
         customer.setCustomerAddress(customerDTO.getAddress());
         customer.setFirstName(customerDTO.getFirstName());
         customer.setLastName(customerDTO.getLastName());
@@ -55,8 +60,8 @@ public class CustomerServiceImp implements CustomerService{
     @Override
     public CustomerResponseDTO findProfile(int customerId) {
         checkAccess(customerId);
-        Customer customer=customerRepository.findById(customerId).orElse(null);
-        assert customer != null;
+        Customer customer=customerRepository.findById(customerId).
+                orElseThrow(() -> new CustomerNotFoundException("customer with id was not found"+customerId));
         return CustomerToDTO(customer);
     }
 
@@ -89,6 +94,7 @@ public class CustomerServiceImp implements CustomerService{
 
 
     private CustomerResponseDTO CustomerToDTO(Customer customer) {
-        return new CustomerResponseDTO(customer.getFirstName(),customer.getLastName(),customer.getAccountNumber(),customer.getBalance());
+        return new CustomerResponseDTO(customer.getFirstName(),customer.getLastName(),
+                customer.getAccountNumber(),customer.getBalance());
     }
 }
