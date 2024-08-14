@@ -13,9 +13,9 @@ public interface TransactionService {
 
     PagedResponse<TransactionResponseDTO> findAllTransactionsByCustomerId(int customerId, int pageNo, int size, String sort, String sortBy, String sortDirection);
 
-    TransferResponseDTO performTransaction(int customerId, TransactionDTO transactionDTO);
+    TransferResponseDTO performTransaction(TransactionDTO transactionDTO);
 
     ByteArrayInputStream generateXlsxFile(List<TransactionResponseDTO> transactions);
 
-    int allAccountBalances(int customerId);
+    int allAccountBalances();
 }

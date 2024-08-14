@@ -129,7 +129,7 @@ public class AdminController {
     }
     @DeleteMapping("/pending-accounts/{id}")
     ResponseEntity<HttpStatus> deleteCustomerRequest(@PathVariable("id") int customerId){
-        adminService.deleteCustomerRequest(customerId);
+        adminService.deleteRegisteredRequest(customerId);
         return new ResponseEntity<>(HttpStatus.OK);
     }
     @PostMapping("/activate-customer/{cid}")

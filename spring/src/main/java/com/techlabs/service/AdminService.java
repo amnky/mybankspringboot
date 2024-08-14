@@ -16,4 +16,6 @@ public interface AdminService {
     void activateCustomer(int customerId);
 
     PagedResponse<CustomerResponseDTO> inActiveCustomer(int pageNo, int size, String sort, String sortBy, String sortDirection);
+
+    void deleteRegisteredRequest(int customerId);
 }

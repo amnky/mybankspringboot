@@ -8,5 +8,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface TransactionRepository extends JpaRepository<Transaction,Integer> {
+
     Page<Transaction> findByCustomerId(int customerId, Pageable pageable);
 }

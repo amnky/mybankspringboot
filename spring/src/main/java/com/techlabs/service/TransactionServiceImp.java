@@ -10,6 +10,7 @@ import com.techlabs.exception.TransactionException;
 import com.techlabs.repository.CustomerRepository;
 import com.techlabs.repository.TransactionRepository;
 import com.techlabs.utils.PagedResponse;
+import com.techlabs.utils.TransactionType;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -79,9 +80,10 @@ public class TransactionServiceImp implements TransactionService {
     }
 
     @Override
-    public TransferResponseDTO performTransaction(int customerId, TransactionDTO transactionDTO) {
+    public TransferResponseDTO performTransaction(TransactionDTO transactionDTO) {
+        int customerId=transactionDTO.getSenderCustomerId();
         checkAccess(customerId);
-        Customer customer = customerRepository.findById(customerId).orElseThrow(() -> new CustomerNotFoundException("customer with id was not found"+customerId));
+        Customer customer = customerRepository.findByCustomerIdAndIsActiveTrue(customerId);
         try {
             if(customer==null){
                 throw new CustomerNotFoundException("customer not found");
@@ -92,10 +94,10 @@ public class TransactionServiceImp implements TransactionService {
                 transactionRepository.save(transaction);
                 throw new TransactionException("can't complete transaction");
             }
+            int receiverAccountNo=transferAmountToReceiverAccount(transactionDTO,customer.getAccountNumber());
             int newBalance=customer.getBalance() - transactionDTO.getTransactionAmount();
             customer.setBalance(newBalance);
             Customer updatedCustomer = customerRepository.save(customer);
-            int receiverAccountNo=transferAmountToReceiverAccount(transactionDTO,customer.getAccountNumber());
             Transaction transaction = convertDtoToTransaction(transactionDTO, updatedCustomer, true);
             transactionRepository.save(transaction);
             String emailReceiver=customer.getEmail();
@@ -135,7 +137,7 @@ public class TransactionServiceImp implements TransactionService {
             );
             dateCell.setCellStyle(dateCellStyle);
 
-            headerRow.createCell(4).setCellValue("transactionType");
+//            headerRow.createCell(4).setCellValue("transactionType");
 
             // Populate data rows
             int rowNum = 1;
@@ -149,7 +151,7 @@ public class TransactionServiceImp implements TransactionService {
                 dataDateCell.setCellValue(transaction.getTransactionDate());
                 dataDateCell.setCellStyle(dateCellStyle);
 
-                row.createCell(4).setCellValue(transaction.getTransactionType().name());
+//                row.createCell(4).setCellValue(transaction.getTransactionType().name());
                 // Add more data cells as needed
             }
 
@@ -167,14 +169,22 @@ public class TransactionServiceImp implements TransactionService {
     }
 
     @Override
-    public int allAccountBalances(int customerId) {
+    public int allAccountBalances() {
+        int customerId=fromToken();
         checkAccess(customerId);
-        int identity=customerRepository.findUniqueIdentityByCustomerId(customerId);
-        return customerRepository.findBalancesByUniqueIdentity(identity);
+        int identity=customerRepository.findUniqueIdentityByCustomerIdAndIsActive(customerId);
+        return customerRepository.findBalancesByUniqueIdentityAndIsActive(identity);
+    }
+
+    private int fromToken() {
+        return Integer.parseInt(SecurityContextHolder.getContext().getAuthentication().getName());
     }
 
     private int transferAmountToReceiverAccount(TransactionDTO transactionDTO,int SenderAccountNo) {
-        Customer customer=customerRepository.findByAccountNumber(transactionDTO.getReceiverAccountNumber());
+        Customer customer=customerRepository.findByAccountNumberAndIsActiveTrue(transactionDTO.getReceiverAccountNumber());
+        if(customer==null){
+            throw new CustomerNotFoundException("can not transfer money, because no such account number exist");
+        }
         int addedBalance=customer.getBalance()+transactionDTO.getTransactionAmount();
         customer.setBalance(addedBalance);
         customer=customerRepository.save(customer);
@@ -209,7 +219,7 @@ public class TransactionServiceImp implements TransactionService {
         List<TransactionResponseDTO> transactionResponseDTOList = new ArrayList<>();
         for (Transaction transaction : transactionList) {
             transactionResponseDTOList.add(new TransactionResponseDTO(transaction.getSenderAccountNo()
-                    , transaction.getReceiverAccountNo(), transaction.getTransactionType(), transaction.getTransactionAmount(),
+                    , transaction.getReceiverAccountNo(),transaction.getTransactionAmount(),
                     transaction.getTransactionTime()));
         }
         return transactionResponseDTOList;

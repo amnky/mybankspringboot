@@ -8,15 +8,13 @@ import java.util.Date;
 public class TransactionResponseDTO {
     private int SenderAccountNo;
     private int ReceiverAccountNo;
-    private TransactionType transactionType;
     private int amount;
     private LocalDateTime transactionDate;
     public TransactionResponseDTO(){}
 
-    public TransactionResponseDTO(int senderAccountNo, int receiverAccountNo, TransactionType transactionType, int amount, LocalDateTime transactionDate) {
+    public TransactionResponseDTO(int senderAccountNo, int receiverAccountNo, int amount, LocalDateTime transactionDate) {
         SenderAccountNo = senderAccountNo;
         ReceiverAccountNo = receiverAccountNo;
-        this.transactionType = transactionType;
         this.amount = amount;
         this.transactionDate = transactionDate;
     }
@@ -37,13 +35,13 @@ public class TransactionResponseDTO {
         ReceiverAccountNo = receiverAccountNo;
     }
 
-    public TransactionType getTransactionType() {
-        return transactionType;
-    }
-
-    public void setTransactionType(TransactionType transactionType) {
-        this.transactionType = transactionType;
-    }
+//    public TransactionType getTransactionType() {
+//        return transactionType;
+//    }
+//
+//    public void setTransactionType(TransactionType transactionType) {
+//        this.transactionType = transactionType;
+//    }
 
     public int getAmount() {
         return amount;

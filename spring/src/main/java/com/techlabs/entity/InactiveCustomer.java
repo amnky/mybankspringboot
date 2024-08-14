@@ -53,7 +53,7 @@ public class InactiveCustomer {
     private String nomineeName;
 
     @Column(name="balance")
-    @NotBlank
+    @NotNull
     private int balance;
 
     @Column(name="account_open_date")

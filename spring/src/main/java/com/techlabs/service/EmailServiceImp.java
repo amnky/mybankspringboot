@@ -58,7 +58,8 @@ public class EmailServiceImp implements EmailService{
             mimeMessageHelper.setFrom(sender);
             mimeMessageHelper.setTo(customer.getEmail());
             String body= "CustomerId: "+customer.getCustomerId()+"\n"+"AccountNo: "+customer.getAccountNumber()
-                    +"\n"+"Balance: "+customer.getBalance()+"\n"+"Account OpeningDate: "+customer.getAccountOpenDate();
+                    +"\n"+"Balance: "+customer.getBalance()+"\n"+"Account OpeningDate: "+customer.getAccountOpenDate()
+                    +"your new username and password is:"+customer.getCustomerId()+"\n please change your password";
             mimeMessageHelper.setText(body);
             mimeMessageHelper.setSubject(
                     "Congrats! account has been activated");

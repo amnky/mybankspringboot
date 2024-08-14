@@ -12,17 +12,16 @@ public class TransactionDTO {
     private int senderCustomerId;
     @NotNull
     private int transactionAmount;
-    @NotBlank
     private TransactionType transactionType;
 
     public TransactionDTO() {
     }
 
-    public TransactionDTO(int receiverAccountNumber, int senderCustomerId, int transactionAmount, TransactionType transactionType) {
+    public TransactionDTO(int receiverAccountNumber, int senderCustomerId, int transactionAmount,String transactionType) {
         this.receiverAccountNumber = receiverAccountNumber;
         this.senderCustomerId = senderCustomerId;
         this.transactionAmount = transactionAmount;
-        this.transactionType = transactionType;
+        this.transactionType=TransactionType.valueOf(transactionType);
     }
 
     public int getReceiverAccountNumber() {

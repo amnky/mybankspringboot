@@ -57,7 +57,7 @@ public class AdminServiceImp implements AdminService {
                 ? Sort.by(sortBy).ascending()
                 : Sort.by(sortBy).descending();
         Pageable pageable = PageRequest.of(pageNo, size, sorting);
-        Page<Customer> pagedCustomers = customerRepository.findAll(pageable);
+        Page<Customer> pagedCustomers = customerRepository.findByIsActiveTrue(pageable,true);
         List<Customer> CustomerList = pagedCustomers.getContent();
         List<CustomerResponseDTO> CustomerResponseDTO = customerResponseListToDTO(CustomerList);
 
@@ -142,6 +142,7 @@ public class AdminServiceImp implements AdminService {
         authRepository.save(credential);
     }
 
+
 //    private void addAdminCredentials(String uniqueIdentificationNumber) {
 //        Credential credential = new Credential();
 //        credential.setCustomerId(Integer.parseInt(uniqueIdentificationNumber));
@@ -157,6 +158,7 @@ public class AdminServiceImp implements AdminService {
         customer.setFirstName(registeredCustomer.getFirstName());
         customer.setNomineeName(registeredCustomer.getNomineeName());
         customer.setEmail(registeredCustomer.getEmail());
+        customer.setActive(true);
         return customer;
     }
 
@@ -170,27 +172,37 @@ public class AdminServiceImp implements AdminService {
     @Override
     public void deleteCustomerRequest(int customerId) {
         checkAdminAccess();
-        addCustomerToInactive(customerId);
-        customerRepository.deleteById(customerId);
+
+        Customer customer=customerRepository.findById(customerId).orElseThrow(()->new CustomerNotFoundException("customer not found"));
+        if(customer.isActive()==false){
+            throw new CustomerNotFoundException("customer not active,already deactivated");
+        }
+        customerRepository.deActivateCustomer(customerId);
         Credential credential =authRepository.findByCustomerId(customerId);
         authRepository.delete(credential);
+        emailService.sendEmailToCustomerOfAccountInactivated(customer);
     }
 
     @Override
     public void activateCustomer(int customerId) {
         checkAdminAccess();
-        InactiveCustomer inactiveCustomer=inactiveCustomerRepository.findByCustomerId(customerId);
-        Customer customer=inactiveToCustomer(inactiveCustomer);
-        customerRepository.save(customer);
-        inactiveCustomerRepository.delete(inactiveCustomer);
+        Customer customer1=customerRepository.findByCustomerIdAndIsActiveTrue(customerId);
+        if(customer1==null){
+            throw new CustomerNotFoundException("customer is already active");
+        }
+        customerRepository.ActivateCustomer(customerId);
+        Customer customer=customerRepository.findByCustomerIdAndIsActiveTrue(customerId);
+        addCustomerCredentials(customer);
         emailService.sendEmailToCustomer(customer);
     }
 
-    private Customer inactiveToCustomer(InactiveCustomer inactiveCustomer) {
-        return new Customer(inactiveCustomer.getCustomerId(),inactiveCustomer.getAccountNumber(),inactiveCustomer.getFirstName(),
-                inactiveCustomer.getLastName(),inactiveCustomer.getEmail(),inactiveCustomer.getCustomerAddress(),
-                inactiveCustomer.getNomineeName(),inactiveCustomer.getBalance(),inactiveCustomer.getAccountOpenDate(),inactiveCustomer.getIdentificationNumber());
-    }
+//    private Customer inactiveToActiveCustomer(InactiveCustomer inactiveCustomer) {
+//        Customer customer= new Customer(inactiveCustomer.getCustomerId(),inactiveCustomer.getAccountNumber(),inactiveCustomer.getFirstName(),
+//                inactiveCustomer.getLastName(),inactiveCustomer.getEmail(),inactiveCustomer.getCustomerAddress(),
+//                inactiveCustomer.getNomineeName(),inactiveCustomer.getBalance(),inactiveCustomer.getAccountOpenDate(),inactiveCustomer.getIdentificationNumber());
+//        customer.setCustomerId(inactiveCustomer.getCustomerId());
+//        return customer;
+//    }
 
     @Override
     public PagedResponse<CustomerResponseDTO> inActiveCustomer(int pageNo, int size, String sort, String sortBy, String sortDirection)  {
@@ -199,39 +211,43 @@ public class AdminServiceImp implements AdminService {
                 ? Sort.by(sortBy).ascending()
                 : Sort.by(sortBy).descending();
         Pageable pageable = PageRequest.of(pageNo, size, sorting);
-        Page<InactiveCustomer> pagedInActiveCustomers = inactiveCustomerRepository.findAll(pageable);
-        List<InactiveCustomer> inactiveCustomerList = pagedInActiveCustomers.getContent();
+        Page<Customer> pagedInActiveCustomers = customerRepository.findByIsActiveFalse(pageable);
+        List<Customer> inactiveCustomerList = pagedInActiveCustomers.getContent();
         List<CustomerResponseDTO> CustomerResponseDTO = inactiveCustomersToCustomerResponseDTO(inactiveCustomerList);
-
         return new PagedResponse<>(CustomerResponseDTO, pagedInActiveCustomers.getNumber(),
                 pagedInActiveCustomers.getSize(), pagedInActiveCustomers.getTotalElements(), pagedInActiveCustomers.getTotalPages(),
                 pagedInActiveCustomers.isLast());
     }
 
-    private List<CustomerResponseDTO> inactiveCustomersToCustomerResponseDTO(List<InactiveCustomer> inactiveCustomerList) {
+    @Override
+    public void deleteRegisteredRequest(int registeredId) {
+        registeredRepository.deleteById(registeredId);
+    }
+
+    private List<CustomerResponseDTO> inactiveCustomersToCustomerResponseDTO(List<Customer> inactiveCustomerList) {
         List<CustomerResponseDTO> customerResponseDTOList=new ArrayList<>();
-        for(InactiveCustomer inactiveCustomer:inactiveCustomerList){
+        for(Customer inactiveCustomer:inactiveCustomerList){
             customerResponseDTOList.add(inactiveCustomerToCustomerResponseDTO(inactiveCustomer));
         }
         return customerResponseDTOList;
     }
 
-    private CustomerResponseDTO inactiveCustomerToCustomerResponseDTO(InactiveCustomer inactiveCustomer) {
+    private CustomerResponseDTO inactiveCustomerToCustomerResponseDTO(Customer inactiveCustomer) {
         return new CustomerResponseDTO(inactiveCustomer.getFirstName(),inactiveCustomer.getLastName(),
                 inactiveCustomer.getAccountNumber(),inactiveCustomer.getBalance(),inactiveCustomer.getCustomerId());
     }
 
-    private void addCustomerToInactive(int customerId) {
-        Customer customer = customerRepository.findById(customerId).
-                orElseThrow(() -> new CustomerNotFoundException("customer with id was not found, so can't convert to inactive"+customerId));
-        if(customer==null){
-            logger.info("there is no such customer found with id:"+customerId);
-            throw new CustomerNotFoundException("customer not found, can't convert to inactive");
-        }
-        InactiveCustomer inactiveCustomer = convertCustomerToInactiveCustomer(customer);
-        inactiveCustomerRepository.save(inactiveCustomer);
-        emailService.sendEmailToCustomerOfAccountInactivated(customer);
-    }
+//    private void addCustomerToInactive(int customerId) {
+//        Customer customer = customerRepository.findById(customerId).
+//                orElseThrow(() -> new CustomerNotFoundException("customer with id was not found, so can't convert to inactive"+customerId));
+//        if(customer==null){
+//            logger.info("there is no such customer found with id:"+customerId);
+//            throw new CustomerNotFoundException("customer not found, can't convert to inactive");
+//        }
+//        InactiveCustomer inactiveCustomer = convertCustomerToInactiveCustomer(customer);
+//        inactiveCustomerRepository.save(inactiveCustomer);
+//        emailService.sendEmailToCustomerOfAccountInactivated(customer);
+//    }
 
     private InactiveCustomer convertCustomerToInactiveCustomer(Customer customer) {
         return new InactiveCustomer(customer.getCustomerId(), customer.getAccountNumber(),

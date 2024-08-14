@@ -13,11 +13,8 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/customer")
 public class CustomerController {
-
     private final CustomerService customerService;
-
     private final TransactionService transactionService;
-
     public CustomerController(CustomerService customerService, TransactionService transactionService) {
         this.customerService = customerService;
         this.transactionService = transactionService;
@@ -44,22 +41,22 @@ public class CustomerController {
         PagedResponse<TransactionResponseDTO> transactionDTO=transactionService.findAllTransactionsByCustomerId(customerId,pageNo,size,sort,sortBy,sortDirection);
         return new ResponseEntity<>(transactionDTO,HttpStatus.OK);
     }
-    @PostMapping("/transactions/{id}")
-    ResponseEntity<TransferResponseDTO>performTransaction(@PathVariable("id") int customerId,
+    @PostMapping("/transactions")
+    ResponseEntity<TransferResponseDTO>performTransaction(
                                                           @Valid @RequestBody TransactionDTO transactionDTO){
 
-        TransferResponseDTO transferResponseDTO=transactionService.performTransaction(customerId,transactionDTO);
+        TransferResponseDTO transferResponseDTO=transactionService.performTransaction(transactionDTO);
         return new ResponseEntity<>(transferResponseDTO,HttpStatus.OK);
     }
-    @GetMapping("/accounts-balances/{cid}")
-    ResponseEntity<Integer>allBalances(@PathVariable("cid")int customerId){
-        int allbalance=transactionService.allAccountBalances(customerId);
+    @GetMapping("/accounts-balances")
+    ResponseEntity<Integer>allBalances(){
+        int allbalance=transactionService.allAccountBalances();
         return new ResponseEntity<Integer>(allbalance,HttpStatus.OK);
     }
     @PostMapping("/auth/{id}")
-    ResponseEntity<HttpStatus> updatedCustomerPassword(@PathVariable("id") int customerId,@RequestBody String password){
-        customerService.updatedCustomerPassword(customerId,password);
-        return new ResponseEntity<>(HttpStatus.OK);
+    ResponseEntity<LoginResponseDTO> updatedCustomerPassword(@PathVariable("id") int customerId,@RequestBody String password){
+        LoginResponseDTO loginResponseDTO=customerService.updatedCustomerPassword(customerId,password);
+        return new ResponseEntity<>(loginResponseDTO,HttpStatus.OK);
 
     }
 }

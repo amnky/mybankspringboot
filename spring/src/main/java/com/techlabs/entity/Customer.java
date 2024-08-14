@@ -6,6 +6,8 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.sql.Date;
@@ -49,6 +51,8 @@ public class Customer {
     @Column(name="balance")
     @NotNull
     private int balance;
+    @Column(name="is_active")
+    private boolean isActive;
 
     @Column(name="account_open_date")
     @DateTimeFormat
@@ -59,7 +63,8 @@ public class Customer {
     private int identificationNumber;
     public Customer(){}
 
-    public Customer(int customerId, int accountNumber, String firstName, String lastName, String email, String customerAddress, String nomineeName, int balance, LocalDateTime accountOpenDate, int identificationNumber) {
+    public Customer(int customerId, int accountNumber, String firstName, String lastName, String email,
+                    String customerAddress, String nomineeName, int balance, LocalDateTime accountOpenDate, int identificationNumber) {
         this.customerId = customerId;
         this.accountNumber = accountNumber;
         this.firstName = firstName;
@@ -152,6 +157,14 @@ public class Customer {
         this.identificationNumber = identificationNumber;
     }
 
+    public boolean isActive() {
+        return isActive;
+    }
+
+    public void setActive(boolean active) {
+        isActive = active;
+    }
+
     @Override
     public String toString() {
         return "Customer{" +
@@ -163,8 +176,11 @@ public class Customer {
                 ", customerAddress='" + customerAddress + '\'' +
                 ", nomineeName='" + nomineeName + '\'' +
                 ", balance=" + balance +
+                ", isActive=" + isActive +
                 ", accountOpenDate=" + accountOpenDate +
                 ", identificationNumber=" + identificationNumber +
                 '}';
     }
+
+
 }

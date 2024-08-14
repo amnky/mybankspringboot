@@ -5,7 +5,6 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
-import java.sql.Date;
 import java.time.LocalDateTime;
 
 @Entity
@@ -47,19 +46,19 @@ public class Transaction {
     @Column(name="status")
     private Boolean status;
 
-    @NotNull
     @Column(name="transaction_type")
+    @Enumerated(EnumType.STRING)
     private TransactionType transactionType;
 
-    public Transaction( int senderAccountNo, int receiverAccountNo, int customerId, LocalDateTime transactionTime,
-                        int transactionAmount, Boolean status, TransactionType transactionType) {
+
+    public Transaction(int senderAccountNo, int receiverAccountNo, int customerId, LocalDateTime transactionTime,
+                       int transactionAmount, Boolean status, TransactionType transactionType) {
         this.senderAccountNo = senderAccountNo;
         this.receiverAccountNo = receiverAccountNo;
         this.customerId = customerId;
         this.transactionTime = transactionTime;
         this.transactionAmount = transactionAmount;
         this.status = status;
-        this.transactionType = transactionType;
     }
 
     public int getTransactionId() {
