@@ -1,10 +1,12 @@
 package com.techlabs.service;
 
+import com.techlabs.dto.AccountResponseDTO;
 import com.techlabs.dto.TransactionDTO;
 import com.techlabs.dto.TransactionResponseDTO;
 import com.techlabs.dto.TransferResponseDTO;
 import com.techlabs.entity.Customer;
 import com.techlabs.entity.Transaction;
+import com.techlabs.exception.CustomerApiException;
 import com.techlabs.exception.CustomerNotFoundException;
 import com.techlabs.exception.TransactionException;
 import com.techlabs.repository.CustomerRepository;
@@ -18,6 +20,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -29,6 +32,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Service
 public class TransactionServiceImp implements TransactionService {
@@ -88,31 +92,34 @@ public class TransactionServiceImp implements TransactionService {
             if(customer==null){
                 throw new CustomerNotFoundException("customer not found");
             }
-            boolean isValidBalance = checkBalance(customer,customerId, transactionDTO.getTransactionAmount());
+            boolean isValidBalance = checkBalance(customer, transactionDTO.getTransactionAmount());
             if (!isValidBalance) {
                 Transaction transaction = convertDtoToTransaction(transactionDTO, customer, false);
                 transactionRepository.save(transaction);
                 throw new TransactionException("can't complete transaction");
             }
+            System.out.println("transfer amount to another account");
             int receiverAccountNo=transferAmountToReceiverAccount(transactionDTO,customer.getAccountNumber());
             int newBalance=customer.getBalance() - transactionDTO.getTransactionAmount();
             customer.setBalance(newBalance);
             Customer updatedCustomer = customerRepository.save(customer);
             Transaction transaction = convertDtoToTransaction(transactionDTO, updatedCustomer, true);
-            transactionRepository.save(transaction);
+            transaction=transactionRepository.save(transaction);
             String emailReceiver=customer.getEmail();
             emailService.sendEmailToSender(emailReceiver,receiverAccountNo,transaction.getTransactionAmount(),newBalance);
-            return transactionToResponseDTO(transaction, updatedCustomer.getBalance());
+            return transactionToResponseDTO(transaction, updatedCustomer.getBalance(),true);
         } catch (Exception ignored) {
             if(customer==null){
                 throw new CustomerNotFoundException("customer not found");
             }
             Transaction transaction = convertDtoToTransaction(transactionDTO, customer, false);
             Transaction savedTransaction=transactionRepository.save(transaction);
-            return transactionToResponseDTO(savedTransaction, customer.getBalance());
+            return transactionToResponseDTO(savedTransaction, customer.getBalance(),false);
         }
 
     }
+
+
 
     @Override
     public ByteArrayInputStream generateXlsxFile(List<TransactionResponseDTO> transactions) {
@@ -176,6 +183,18 @@ public class TransactionServiceImp implements TransactionService {
         return customerRepository.findBalancesByUniqueIdentityAndIsActive(identity);
     }
 
+    @Override
+    public int accountBalance(int customerId) {
+        checkAccess(customerId);
+        return customerRepository.findBalanceByCustomerId(customerId);
+    }
+
+    @Override
+    public PagedResponse<AccountResponseDTO> getMyAllAccounts(int pageNo, int size, String sort,
+                                                              String sortBy, String sortDirection) {
+        return null;
+    }
+
     private int fromToken() {
         return Integer.parseInt(SecurityContextHolder.getContext().getAuthentication().getName());
     }
@@ -193,8 +212,8 @@ public class TransactionServiceImp implements TransactionService {
         return customer.getAccountNumber();
     }
 
-    private TransferResponseDTO transactionToResponseDTO(Transaction transaction, int balance) {
-        return new TransferResponseDTO(transaction.getTransactionId(),balance, transaction.getTransactionAmount());
+    private TransferResponseDTO transactionToResponseDTO(Transaction transaction, int balance,Boolean statusCode) {
+        return new TransferResponseDTO(transaction.getTransactionId(),balance, transaction.getTransactionAmount(),statusCode);
     }
 
     private Transaction convertDtoToTransaction(TransactionDTO transactionDTO, Customer customer, boolean status) {
@@ -203,12 +222,13 @@ public class TransactionServiceImp implements TransactionService {
                 status, transactionDTO.getTransactionType());
     }
 
-    private boolean checkBalance(Customer customer,int customerId, int transactionAmount) {
+    private boolean checkBalance(Customer customer, int transactionAmount) {
         if(customer==null){
             throw new CustomerNotFoundException("customer not found");
         }
         if (transactionAmount > customer.getBalance()) {
-            throw  new TransactionException("your balance is less than transactionAmount");
+            System.out.println("less balance ,can't perform transaction");
+            return false;
 
         }
         return true;
@@ -218,9 +238,9 @@ public class TransactionServiceImp implements TransactionService {
     private List<TransactionResponseDTO> transactionsToDTO(List<Transaction> transactionList) {
         List<TransactionResponseDTO> transactionResponseDTOList = new ArrayList<>();
         for (Transaction transaction : transactionList) {
-            transactionResponseDTOList.add(new TransactionResponseDTO(transaction.getSenderAccountNo()
-                    , transaction.getReceiverAccountNo(),transaction.getTransactionAmount(),
-                    transaction.getTransactionTime()));
+            transactionResponseDTOList.add(new TransactionResponseDTO(transaction.getTransactionId(),
+                    transaction.getSenderAccountNo(), transaction.getReceiverAccountNo(),
+                    transaction.getTransactionAmount(),transaction.getStatus(), transaction.getTransactionTime()));
         }
         return transactionResponseDTOList;
     }

@@ -1,12 +1,36 @@
 package com.techlabs.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class CustomerResponseDTO {
     private String firstName;
     private String lastName;
     private int accountNumber;
     private int balance;
     private int customerId;
-    public CustomerResponseDTO(){}
+    private String nomineeName;
+    private String address;
+    private String email;
+    private String identificationNumber;
+
+    public CustomerResponseDTO(String firstName, String lastName, int accountNumber, int balance,
+                               int customerId, String nomineeName, String address, String email) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.accountNumber = accountNumber;
+        this.balance = balance;
+        this.customerId = customerId;
+        this.nomineeName = nomineeName;
+        this.address = address;
+        this.email = email;
+    }
 
     public CustomerResponseDTO(String firstName, String lastName, int accountNumber, int balance) {
         this.firstName = firstName;
@@ -34,44 +58,4 @@ public class CustomerResponseDTO {
     }
 
 
-    public String getFirstName() {
-        return firstName;
-    }
-
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
-
-    public int getAccountNumber() {
-        return accountNumber;
-    }
-
-    public void setAccountNumber(int accountNumber) {
-        this.accountNumber = accountNumber;
-    }
-
-    public int getBalance() {
-        return balance;
-    }
-
-    public void setBalance(int balance) {
-        this.balance = balance;
-    }
-
-
-    public int getCustomerId() {
-        return customerId;
-    }
-
-    public void setCustomerId(int customerId) {
-        this.customerId = customerId;
-    }
 }

@@ -1,5 +1,6 @@
 package com.techlabs.service;
 
+import com.techlabs.dto.AccountResponseDTO;
 import com.techlabs.dto.TransactionDTO;
 import com.techlabs.dto.TransactionResponseDTO;
 import com.techlabs.dto.TransferResponseDTO;
@@ -18,4 +19,8 @@ public interface TransactionService {
     ByteArrayInputStream generateXlsxFile(List<TransactionResponseDTO> transactions);
 
     int allAccountBalances();
+
+    int accountBalance(int customerId);
+
+    PagedResponse<AccountResponseDTO> getMyAllAccounts(int pageNo, int size, String sort, String sortBy, String sortDirection);
 }

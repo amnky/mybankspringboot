@@ -9,6 +9,8 @@ import com.techlabs.repository.*;
 import com.techlabs.utils.AccountType;
 import com.techlabs.utils.PagedResponse;
 import com.techlabs.utils.RoleType;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -19,9 +21,14 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.ResourceAccessException;
 
+import java.net.MalformedURLException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +36,7 @@ import org.slf4j.LoggerFactory;
 public class AdminServiceImp implements AdminService {
     private static final Logger logger = LoggerFactory.getLogger(AdminServiceImp.class);
 
-
+    private static final String UPLOAD_DIR = "uploads/";
     private final CustomerRepository customerRepository;
     private final AccountRepository accountRepository;
     private final RegisteredRepository registeredRepository;
@@ -57,7 +64,7 @@ public class AdminServiceImp implements AdminService {
                 ? Sort.by(sortBy).ascending()
                 : Sort.by(sortBy).descending();
         Pageable pageable = PageRequest.of(pageNo, size, sorting);
-        Page<Customer> pagedCustomers = customerRepository.findByIsActiveTrue(pageable,true);
+        Page<Customer> pagedCustomers = customerRepository.findByIsActiveTrue(pageable, true);
         List<Customer> CustomerList = pagedCustomers.getContent();
         List<CustomerResponseDTO> CustomerResponseDTO = customerResponseListToDTO(CustomerList);
 
@@ -87,49 +94,58 @@ public class AdminServiceImp implements AdminService {
     private List<RegisterDTO> registeredListToDTO(List<Registered> registeredList) {
         List<RegisterDTO> customerDTOList = new ArrayList<>();
         for (Registered registered : registeredList) {
-            customerDTOList.add(new RegisterDTO(registered.getId(), registered.getFirstName(), registered.getLastName(),
-                    registered.getNomineeName(), registered.getAddress(), registered.getEmail(),
-                    registered.getUniqueIdentificationNumber()));
+            customerDTOList.add(convertRegisteredToRegisteredDTO(registered));
         }
         return customerDTOList;
+    }
+
+    private RegisterDTO convertRegisteredToRegisteredDTO(Registered registered) {
+       return new RegisterDTO(registered.getId(), registered.getFirstName(), registered.getLastName(),
+                registered.getNomineeName(), registered.getAddress(), registered.getEmail(),
+                registered.getUniqueIdentificationNumber());
+    }
+
+    @Override
+    public RegisterDTO seeRegisteredUserProfile(int registeredId) {
+        checkAdminAccess();
+        Registered registeredCustomer = registeredRepository.findById(registeredId).
+                orElseThrow(() -> new CustomerNotFoundException("customer with id is not registered yet to bank" + registeredId));
+        return convertRegisteredToRegisteredDTO(registeredCustomer);
     }
 
     @Override
     public CustomerResponseDTO verifyAndAddAccount(int registeredId) {
         checkAdminAccess();
         Registered registeredCustomer = registeredRepository.findById(registeredId).
-                orElseThrow(() -> new CustomerNotFoundException("customer with id is not registered yet to bank"+registeredId));
-        if(registeredCustomer==null){
-            throw new CustomerNotFoundException("registered customer not found");
-        }
+                orElseThrow(() -> new CustomerNotFoundException("customer with id is not registered yet to bank" + registeredId));
 
-            Customer customer = addCustomerToAccountTable(registeredCustomer);
+        Customer customer = addCustomerToAccountTable(registeredCustomer);
 //            create account
-            Account account =new Account();
-            account.setUniqueIdentificationNumber(registeredCustomer.getUniqueIdentificationNumber());
-            account.setCustomerId(customer.getCustomerId());
-            account=accountRepository.save(account);
-            System.out.println("account id of new customer is:"+account.getAccountNumber());
+        Account account = new Account();
+        account.setUniqueIdentificationNumber(registeredCustomer.getUniqueIdentificationNumber());
+        account.setCustomerId(customer.getCustomerId());
+        account = accountRepository.save(account);
+        System.out.println("account id of new customer is:" + account.getAccountNumber());
 
 //            save account and set to customer table
 
-            customer.setAccountNumber(account.getAccountNumber());
-            customer.setAccountOpenDate(LocalDateTime.now());
-            customer.setIdentificationNumber(Integer.parseInt(registeredCustomer.getUniqueIdentificationNumber()));
-            customer.setAccountOpenDate(LocalDateTime.now());
-            customer.setBalance(1000);
-            customer.setFirstName(registeredCustomer.getFirstName());
-            customer.setLastName(registeredCustomer.getLastName());
-            customer.setNomineeName(registeredCustomer.getNomineeName());
-            customer.setCustomerAddress(registeredCustomer.getAddress());
-            customer.setEmail(registeredCustomer.getEmail());
+        customer.setAccountNumber(account.getAccountNumber());
+        customer.setAccountOpenDate(LocalDateTime.now());
+        customer.setIdentificationNumber(Integer.parseInt(registeredCustomer.getUniqueIdentificationNumber()));
+        customer.setAccountOpenDate(LocalDateTime.now());
+        customer.setBalance(1000);
+        customer.setFirstName(registeredCustomer.getFirstName());
+        customer.setLastName(registeredCustomer.getLastName());
+        customer.setNomineeName(registeredCustomer.getNomineeName());
+        customer.setCustomerAddress(registeredCustomer.getAddress());
+        customer.setEmail(registeredCustomer.getEmail());
 
-            Customer generatedCustomer = customerRepository.save(customer);
-            addCustomerCredentials(generatedCustomer);
+        Customer generatedCustomer = customerRepository.save(customer);
+        addCustomerCredentials(generatedCustomer);
 
-            registeredRepository.delete(registeredCustomer);
-            emailService.sendEmailToCustomer(generatedCustomer);
-            return customerResponseToDTO(generatedCustomer);
+        registeredRepository.delete(registeredCustomer);
+        emailService.sendEmailToCustomer(generatedCustomer);
+        return customerResponseToDTO(generatedCustomer);
     }
 
     private void addCustomerCredentials(Customer generatedCustomer) {
@@ -173,12 +189,12 @@ public class AdminServiceImp implements AdminService {
     public void deleteCustomerRequest(int customerId) {
         checkAdminAccess();
 
-        Customer customer=customerRepository.findById(customerId).orElseThrow(()->new CustomerNotFoundException("customer not found"));
-        if(customer.isActive()==false){
+        Customer customer = customerRepository.findById(customerId).orElseThrow(() -> new CustomerNotFoundException("customer not found"));
+        if (customer.isActive() == false) {
             throw new CustomerNotFoundException("customer not active,already deactivated");
         }
         customerRepository.deActivateCustomer(customerId);
-        Credential credential =authRepository.findByCustomerId(customerId);
+        Credential credential = authRepository.findByCustomerId(customerId);
         authRepository.delete(credential);
         emailService.sendEmailToCustomerOfAccountInactivated(customer);
     }
@@ -186,12 +202,12 @@ public class AdminServiceImp implements AdminService {
     @Override
     public void activateCustomer(int customerId) {
         checkAdminAccess();
-        Customer customer1=customerRepository.findByCustomerIdAndIsActiveTrue(customerId);
-        if(customer1==null){
+        Customer customer1 = customerRepository.findByCustomerIdAndIsActiveTrue(customerId);
+        if (customer1 == null) {
             throw new CustomerNotFoundException("customer is already active");
         }
         customerRepository.ActivateCustomer(customerId);
-        Customer customer=customerRepository.findByCustomerIdAndIsActiveTrue(customerId);
+        Customer customer = customerRepository.findByCustomerIdAndIsActiveTrue(customerId);
         addCustomerCredentials(customer);
         emailService.sendEmailToCustomer(customer);
     }
@@ -205,7 +221,7 @@ public class AdminServiceImp implements AdminService {
 //    }
 
     @Override
-    public PagedResponse<CustomerResponseDTO> inActiveCustomer(int pageNo, int size, String sort, String sortBy, String sortDirection)  {
+    public PagedResponse<CustomerResponseDTO> inActiveCustomer(int pageNo, int size, String sort, String sortBy, String sortDirection) {
         checkAdminAccess();
         Sort sorting = sortDirection.equalsIgnoreCase(Sort.Direction.ASC.name())
                 ? Sort.by(sortBy).ascending()
@@ -224,17 +240,33 @@ public class AdminServiceImp implements AdminService {
         registeredRepository.deleteById(registeredId);
     }
 
+    @Override
+    public Resource downloadUserAadhar(int registeredId) {
+        checkAdminAccess();
+        Registered registeredUser = registeredRepository.findById(registeredId).
+                orElseThrow(() -> new NoSuchElementException("registered user not found"));
+        String filename = registeredUser.getUniqueIdentificationNumber()+registeredUser.getDocExtension();
+        Path filePath = Paths.get(UPLOAD_DIR).resolve(filename).normalize();
+        try {
+            return new UrlResource(filePath.toUri());
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+
     private List<CustomerResponseDTO> inactiveCustomersToCustomerResponseDTO(List<Customer> inactiveCustomerList) {
-        List<CustomerResponseDTO> customerResponseDTOList=new ArrayList<>();
-        for(Customer inactiveCustomer:inactiveCustomerList){
+        List<CustomerResponseDTO> customerResponseDTOList = new ArrayList<>();
+        for (Customer inactiveCustomer : inactiveCustomerList) {
             customerResponseDTOList.add(inactiveCustomerToCustomerResponseDTO(inactiveCustomer));
         }
         return customerResponseDTOList;
     }
 
     private CustomerResponseDTO inactiveCustomerToCustomerResponseDTO(Customer inactiveCustomer) {
-        return new CustomerResponseDTO(inactiveCustomer.getFirstName(),inactiveCustomer.getLastName(),
-                inactiveCustomer.getAccountNumber(),inactiveCustomer.getBalance(),inactiveCustomer.getCustomerId());
+        return new CustomerResponseDTO(inactiveCustomer.getFirstName(), inactiveCustomer.getLastName(),
+                inactiveCustomer.getAccountNumber(), inactiveCustomer.getBalance(), inactiveCustomer.getCustomerId());
     }
 
 //    private void addCustomerToInactive(int customerId) {
@@ -258,7 +290,7 @@ public class AdminServiceImp implements AdminService {
 
     private CustomerResponseDTO customerResponseToDTO(Customer customer) {
         return new CustomerResponseDTO(customer.getFirstName(), customer.getLastName(),
-                customer.getAccountNumber(), customer.getBalance(),customer.getCustomerId());
+                customer.getAccountNumber(), customer.getBalance(), customer.getCustomerId());
     }
 
     private List<CustomerDTO> customerListToDTO(List<Customer> customerList) {
@@ -277,12 +309,13 @@ public class AdminServiceImp implements AdminService {
         }
         return customerResponseDTOList;
     }
-    private void checkAdminAccess(){
+
+    private void checkAdminAccess() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         boolean hasUserRole = authentication.getAuthorities().stream()
                 .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_CUSTOMER"));
-        if(hasUserRole){
-            throw  new ResourceAccessException("you haven't access to this resource, please contact admin");
+        if (hasUserRole) {
+            throw new ResourceAccessException("you haven't access to this resource, please contact admin");
         }
     }
 }

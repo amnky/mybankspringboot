@@ -25,9 +25,10 @@ public class CustomerController {
         CustomerResponseDTO customerResponseDTO=customerService.findProfile(customerId);
         return  new ResponseEntity<>(customerResponseDTO, HttpStatus.OK);
     }
-    @PostMapping("/profile/{id}")
+    @PutMapping("/profile/{id}")
     ResponseEntity<CustomerResponseDTO> updateProfile(@PathVariable("id")int customerId,
                                                       @Valid @RequestBody UpdateProfileDTO updateProfileDTO){
+        System.out.println("inside update controller"+customerId);
         CustomerResponseDTO customerResponseDTO=customerService.updateProfile(customerId,updateProfileDTO);
         return  new ResponseEntity<>(customerResponseDTO, HttpStatus.OK);
     }
@@ -52,6 +53,21 @@ public class CustomerController {
     ResponseEntity<Integer>allBalances(){
         int allbalance=transactionService.allAccountBalances();
         return new ResponseEntity<Integer>(allbalance,HttpStatus.OK);
+    }
+    @GetMapping("/accounts-balance/{cid}")
+    ResponseEntity<Integer>accountBalance(@PathVariable("cid") int customerId){
+        int currentBalance=transactionService.accountBalance(customerId);
+        return new ResponseEntity<Integer>(currentBalance,HttpStatus.OK);
+    }
+    @GetMapping("/accounts")
+    ResponseEntity<PagedResponse<AccountResponseDTO>> getMyAllAccounts(
+                                                                          @RequestParam(name="pageNo",defaultValue = "0") int pageNo,
+                                                                          @RequestParam(name="size",defaultValue = "10") int size,
+                                                                          @RequestParam(name="sort",defaultValue = "ASC") String sort,
+                                                                          @RequestParam(name="sortBy",defaultValue = "AccountNumber") String sortBy,
+                                                                          @RequestParam(name="sortDirection",defaultValue = "ASC") String sortDirection){
+        PagedResponse<AccountResponseDTO> transactionDTO=transactionService.getMyAllAccounts(pageNo,size,sort,sortBy,sortDirection);
+        return new ResponseEntity<>(transactionDTO,HttpStatus.OK);
     }
     @PostMapping("/auth/{id}")
     ResponseEntity<LoginResponseDTO> updatedCustomerPassword(@PathVariable("id") int customerId,@RequestBody String password){

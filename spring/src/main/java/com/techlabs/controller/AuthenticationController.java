@@ -24,6 +24,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/login")
+    @CrossOrigin(origins = "http://localhost:3000")
     ResponseEntity<LoginResponseDTO> loginUser(@RequestBody LoginDTO loginDTO){
         LoginResponseDTO loginResponseDTO=authenticationService.loginUser(loginDTO);
         return  new ResponseEntity<>(loginResponseDTO,HttpStatus.OK);
@@ -34,20 +35,17 @@ public class AuthenticationController {
         int customerId=authenticationService.registerUser(customerDTO);
         return  new ResponseEntity<>(customerId,HttpStatus.OK);
     }
-//    @PostMapping("/register")
-//    public ResponseEntity<String> uploadFile(
-//            @RequestParam("file") MultipartFile file,
-//            @RequestParam("customerDto") CustomerDTO customerDTO) {
-//
-//        // Parse metadata JSON string to your desired object
-//        ObjectMapper objectMapper = new ObjectMapper();
-//        MyMetadata metadata = objectMapper.readValue(metadataJson, MyMetadata.class);
-//    }
-//    @PostMapping(value = "/register/{id}")
-//    ResponseEntity<HttpStatus> uploadFile(@PathVariable("id") int registeredId
-//            ,@RequestPart("file") MultipartFile file) throws IOException {
-//        authenticationService.uploadandStorefile(registeredId,file);
-//        return  new ResponseEntity<>(HttpStatus.OK);
-//    }
+
+    @PostMapping(value = "/register/{id}/{uid}")
+    ResponseEntity<HttpStatus> uploadFile(
+            @PathVariable("id") int registeredId,
+            @PathVariable("uid") int uniqueId,
+            @RequestPart("file") MultipartFile file) throws IOException {
+        if (file.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        authenticationService.uploadandStorefile(registeredId,uniqueId,file);
+        return  new ResponseEntity<>(HttpStatus.OK);
+    }
 
 }

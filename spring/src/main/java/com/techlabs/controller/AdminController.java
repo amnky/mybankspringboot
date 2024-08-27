@@ -34,34 +34,34 @@ public class AdminController {
     }
 
     @GetMapping("/transactions")
-    ResponseEntity<PagedResponse<TransactionResponseDTO>> allTransactions(@RequestParam(name="pageNo",defaultValue = "0") int pageNo,
-                                                                          @RequestParam(name="size",defaultValue = "10") int size,
-                                                                          @RequestParam(name="sort",defaultValue = "ASC") String sort,
-                                                                          @RequestParam(name="sortBy",defaultValue = "transactionTime") String sortBy,
-                                                                          @RequestParam(name="sortDirection",defaultValue = "ASC") String sortDirection){
-        PagedResponse<TransactionResponseDTO> transactions=transactionService.findAllTransactions(pageNo,size,sort,sortBy, sortDirection);
+    ResponseEntity<PagedResponse<TransactionResponseDTO>> allTransactions(@RequestParam(name = "pageNo", defaultValue = "0") int pageNo,
+                                                                          @RequestParam(name = "size", defaultValue = "10") int size,
+                                                                          @RequestParam(name = "sort", defaultValue = "ASC") String sort,
+                                                                          @RequestParam(name = "sortBy", defaultValue = "transactionTime") String sortBy,
+                                                                          @RequestParam(name = "sortDirection", defaultValue = "ASC") String sortDirection) {
+        PagedResponse<TransactionResponseDTO> transactions = transactionService.findAllTransactions(pageNo, size, sort, sortBy, sortDirection);
         return new ResponseEntity<>(transactions, HttpStatus.OK);
-
     }
+
     @GetMapping("/transactions/{id}")
     ResponseEntity<PagedResponse<TransactionResponseDTO>> transactionById(@PathVariable("id") int customerId,
-                                                                          @RequestParam(name="pageNo",defaultValue = "0") int pageNo,
-                                                                          @RequestParam(name="size",defaultValue = "10") int size,
-                                                                          @RequestParam(name="sort",defaultValue = "ASC") String sort,
-                                                                          @RequestParam(name="sortBy",defaultValue = "transactionTime") String sortBy,
-                                                                          @RequestParam(name="sortDirection",defaultValue = "ASC") String sortDirection){
-        PagedResponse<TransactionResponseDTO> transactions=transactionService.findAllTransactionsByCustomerId(customerId,pageNo,size,sort,sortBy, sortDirection);
+                                                                          @RequestParam(name = "pageNo", defaultValue = "0") int pageNo,
+                                                                          @RequestParam(name = "size", defaultValue = "10") int size,
+                                                                          @RequestParam(name = "sort", defaultValue = "ASC") String sort,
+                                                                          @RequestParam(name = "sortBy", defaultValue = "transactionTime") String sortBy,
+                                                                          @RequestParam(name = "sortDirection", defaultValue = "ASC") String sortDirection) {
+        PagedResponse<TransactionResponseDTO> transactions = transactionService.findAllTransactionsByCustomerId(customerId, pageNo, size, sort, sortBy, sortDirection);
         return new ResponseEntity<>(transactions, HttpStatus.OK);
     }
 
     @GetMapping("/download-transactions")
-    public ResponseEntity<Resource> downloadTransactions(@RequestParam(name="pageNo",defaultValue = "0") int pageNo,
-                                                         @RequestParam(name="size",defaultValue = "10") int size,
-                                                         @RequestParam(name="sort",defaultValue = "ASC") String sort,
-                                                         @RequestParam(name="sortBy",defaultValue = "transactionTime") String sortBy,
-                                                         @RequestParam(name="sortDirection",defaultValue = "ASC") String sortDirection) {
-        PagedResponse<TransactionResponseDTO> transactions = transactionService.findAllTransactions(pageNo,size,sort,sortBy, sortDirection); // Fetch data
-        List<TransactionResponseDTO> transactionResponseDTOList=transactions.getPagedData();
+    public ResponseEntity<Resource> downloadTransactions(@RequestParam(name = "pageNo", defaultValue = "0") int pageNo,
+                                                         @RequestParam(name = "size", defaultValue = "10") int size,
+                                                         @RequestParam(name = "sort", defaultValue = "ASC") String sort,
+                                                         @RequestParam(name = "sortBy", defaultValue = "transactionTime") String sortBy,
+                                                         @RequestParam(name = "sortDirection", defaultValue = "ASC") String sortDirection) {
+        PagedResponse<TransactionResponseDTO> transactions = transactionService.findAllTransactions(pageNo, size, sort, sortBy, sortDirection); // Fetch data
+        List<TransactionResponseDTO> transactionResponseDTOList = transactions.getPagedData();
         // Generate file (using your file generation service/helper)
         ByteArrayInputStream fileInputStream = transactionService.generateXlsxFile(transactionResponseDTOList);
 
@@ -77,74 +77,91 @@ public class AdminController {
 
 
     @GetMapping("/customers")
-    ResponseEntity<PagedResponse<CustomerResponseDTO>> allCustomers(@RequestParam(name="pageNo",defaultValue = "0") int pageNo,
-                                                                    @RequestParam(name="size",defaultValue = "10") int size,
-                                                                    @RequestParam(name="sort",defaultValue = "ASC") String sort,
-                                                                    @RequestParam(name="sortBy",defaultValue = "firstName") String sortBy,
-                                                                    @RequestParam(name="sortDirection",defaultValue = "ASC") String sortDirection){
-        PagedResponse<CustomerResponseDTO> transactions=adminService.findAllCustomers(pageNo,size,sort,sortBy,sortDirection);
+    ResponseEntity<PagedResponse<CustomerResponseDTO>> allCustomers(
+            @RequestParam(name = "pageNo", defaultValue = "0") int pageNo,
+            @RequestParam(name = "size", defaultValue = "10") int size,
+            @RequestParam(name = "sort", defaultValue = "ASC") String sort,
+            @RequestParam(name = "sortBy", defaultValue = "firstName") String sortBy,
+            @RequestParam(name = "sortDirection", defaultValue = "ASC") String sortDirection) {
+        PagedResponse<CustomerResponseDTO> transactions = adminService.findAllCustomers(pageNo, size, sort, sortBy, sortDirection);
         return new ResponseEntity<>(transactions, HttpStatus.OK);
     }
 
     @GetMapping("/customers/{id}")
-    ResponseEntity<CustomerResponseDTO> customerById(@PathVariable("id") int customerId){
-        CustomerResponseDTO customerResponseDTO=customerService.findCustomerById(customerId);
+    ResponseEntity<CustomerResponseDTO> customerById(@PathVariable("id") int customerId) {
+        CustomerResponseDTO customerResponseDTO = customerService.findCustomerById(customerId);
         return new ResponseEntity<>(customerResponseDTO, HttpStatus.OK);
     }
 
+    @GetMapping("/download-aadhar/{id}")
+    ResponseEntity<Resource> downloadFile(@PathVariable("id") int registeredId) {
+        Resource resource = adminService.downloadUserAadhar(registeredId);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
+                .body(resource);
+    }
+
     @PostMapping("/customer/auth/{id}")
-    ResponseEntity<HttpStatus> updatedCustomerPassword(@PathVariable("id") int customerId,@RequestBody String password){
-        customerService.updatedCustomerPassword(customerId,password);
+    ResponseEntity<HttpStatus> updatedCustomerPassword(@PathVariable("id") int customerId, @RequestBody String password) {
+        customerService.updatedCustomerPassword(customerId, password);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @PostMapping("/customers/{id}")
     ResponseEntity<CustomerResponseDTO> updateCustomer(@PathVariable("id") int customerId,
                                                        @Valid @RequestBody CustomerDTO customerDTO
-    ){
-        CustomerResponseDTO customerResponseDTO=customerService.updateCustomerById(customerId,customerDTO);
+    ) {
+        CustomerResponseDTO customerResponseDTO = customerService.updateCustomerById(customerId, customerDTO);
         return new ResponseEntity<>(customerResponseDTO, HttpStatus.OK);
     }
 
     @DeleteMapping("/customers/{id}")
-    ResponseEntity<HttpStatus> deleteCustomerById(@PathVariable("id") int customerId){
+    ResponseEntity<HttpStatus> deleteCustomerById(@PathVariable("id") int customerId) {
         adminService.deleteCustomerRequest(customerId);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @GetMapping("/pending-accounts")
-    ResponseEntity<PagedResponse<RegisterDTO>> pendingAccounts(@RequestParam(name="pageNo",defaultValue = "0") int pageNo,
-                                                               @RequestParam(name="size",defaultValue = "10") int size,
-                                                               @RequestParam(name="sort",defaultValue = "ASC") String sort,
-                                                               @RequestParam(name="sortBy",defaultValue = "firstName") String sortBy,
-                                                               @RequestParam(name="sortDirection",defaultValue = "ASC") String sortDirection){
-        PagedResponse<RegisterDTO> accountsInReview=adminService.findPendingAccounts(pageNo,size,sort,sortBy,sortDirection);
-        return new ResponseEntity<>(accountsInReview,HttpStatus.OK);
+    ResponseEntity<PagedResponse<RegisterDTO>> pendingAccounts(@RequestParam(name = "pageNo", defaultValue = "0") int pageNo,
+                                                               @RequestParam(name = "size", defaultValue = "10") int size,
+                                                               @RequestParam(name = "sort", defaultValue = "ASC") String sort,
+                                                               @RequestParam(name = "sortBy", defaultValue = "firstName") String sortBy,
+                                                               @RequestParam(name = "sortDirection", defaultValue = "ASC") String sortDirection) {
+        PagedResponse<RegisterDTO> accountsInReview = adminService.findPendingAccounts(pageNo, size, sort, sortBy, sortDirection);
+        return new ResponseEntity<>(accountsInReview, HttpStatus.OK);
     }
 
     @PostMapping("/pending-accounts/{id}")
-    ResponseEntity<CustomerResponseDTO> verifyAndAddAccount(@PathVariable("id") int registeredId){
-    CustomerResponseDTO customerResponseDTO=adminService.verifyAndAddAccount(registeredId);
-        return new ResponseEntity<>(customerResponseDTO,HttpStatus.OK);
+    ResponseEntity<CustomerResponseDTO> verifyAndAddAccount(@PathVariable("id") int registeredId) {
+        CustomerResponseDTO customerResponseDTO = adminService.verifyAndAddAccount(registeredId);
+        return new ResponseEntity<>(customerResponseDTO, HttpStatus.OK);
     }
+    @GetMapping("/pending-account/{id}")
+    ResponseEntity<RegisterDTO> seeRegisteredUserProfile(@PathVariable("id") int registeredId) {
+        RegisterDTO customerResponseDTO = adminService.seeRegisteredUserProfile(registeredId);
+        return new ResponseEntity<>(customerResponseDTO, HttpStatus.OK);
+    }
+
     @DeleteMapping("/pending-accounts/{id}")
-    ResponseEntity<HttpStatus> deleteCustomerRequest(@PathVariable("id") int customerId){
+    ResponseEntity<HttpStatus> deleteCustomerRequest(@PathVariable("id") int customerId) {
         adminService.deleteRegisteredRequest(customerId);
         return new ResponseEntity<>(HttpStatus.OK);
     }
+
     @PostMapping("/activate-customer/{cid}")
-    ResponseEntity<HttpStatus>activateCustomer(@PathVariable("cid")int customerId){
+    ResponseEntity<HttpStatus> activateCustomer(@PathVariable("cid") int customerId) {
         adminService.activateCustomer(customerId);
         return new ResponseEntity<>(HttpStatus.OK);
     }
+
     @GetMapping("/inactive-customers")
-    ResponseEntity<PagedResponse<CustomerResponseDTO>>seeInActiveCustomers(@RequestParam(name="pageNo",defaultValue = "0") int pageNo,
-                                                                       @RequestParam(name="size",defaultValue = "10") int size,
-                                                                       @RequestParam(name="sort",defaultValue = "ASC") String sort,
-                                                                       @RequestParam(name="sortBy",defaultValue = "firstName") String sortBy,
-                                                                       @RequestParam(name="sortDirection",defaultValue = "ASC") String sortDirection){
-        PagedResponse<CustomerResponseDTO> inActiveCustomers= adminService.inActiveCustomer(pageNo,size,sort,sortBy,sortDirection);
-        return new ResponseEntity<>(inActiveCustomers,HttpStatus.OK);
+    ResponseEntity<PagedResponse<CustomerResponseDTO>> seeInActiveCustomers(@RequestParam(name = "pageNo", defaultValue = "0") int pageNo,
+                                                                            @RequestParam(name = "size", defaultValue = "10") int size,
+                                                                            @RequestParam(name = "sort", defaultValue = "ASC") String sort,
+                                                                            @RequestParam(name = "sortBy", defaultValue = "firstName") String sortBy,
+                                                                            @RequestParam(name = "sortDirection", defaultValue = "ASC") String sortDirection) {
+        PagedResponse<CustomerResponseDTO> inActiveCustomers = adminService.inActiveCustomer(pageNo, size, sort, sortBy, sortDirection);
+        return new ResponseEntity<>(inActiveCustomers, HttpStatus.OK);
     }
 
 }

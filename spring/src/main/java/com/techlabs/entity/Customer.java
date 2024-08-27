@@ -12,6 +12,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import java.sql.Date;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Data
@@ -61,6 +62,13 @@ public class Customer {
     @Column(name="identification_number")
     @NotNull
     private int identificationNumber;
+
+    @OneToMany(mappedBy = "customer", fetch = FetchType.LAZY)
+    private List<Account> accounts;
+
+    @OneToMany(mappedBy = "customer", fetch = FetchType.LAZY)
+    private List<Transaction> transactions;
+
     public Customer(){}
 
     public Customer(int customerId, int accountNumber, String firstName, String lastName, String email,

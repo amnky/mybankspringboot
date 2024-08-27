@@ -71,6 +71,7 @@ public class CustomerServiceImp implements CustomerService{
 
     @Override
     public CustomerResponseDTO updateProfile(int customerId, UpdateProfileDTO updateProfileDTO) {
+        System.out.println("inside update service"+customerId);
         checkAccess(customerId);
         CustomerDTO customerDTO=new CustomerDTO(updateProfileDTO.getFirstName(),updateProfileDTO.getLastName(),
                 updateProfileDTO.getNomineeName(),updateProfileDTO.getAddress(),updateProfileDTO.getEmail());
@@ -79,9 +80,9 @@ public class CustomerServiceImp implements CustomerService{
     private void checkAccess(int customerId){
         String customerLoginId = SecurityContextHolder.getContext().getAuthentication().getName();
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        boolean hasUserRole = authentication.getAuthorities().stream()
+        boolean hasCustomerRole = authentication.getAuthorities().stream()
                 .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_CUSTOMER"));
-        if(!customerLoginId.equals(String.valueOf(customerId)) && hasUserRole){
+        if(!customerLoginId.equals(String.valueOf(customerId)) && hasCustomerRole){
             throw  new ResourceAccessException("you haven't access to this resource, please contact admin");
         }
     }
@@ -100,6 +101,7 @@ public class CustomerServiceImp implements CustomerService{
 
     private CustomerResponseDTO CustomerToDTO(Customer customer) {
         return new CustomerResponseDTO(customer.getFirstName(),customer.getLastName(),
-                customer.getAccountNumber(),customer.getBalance(),customer.getCustomerId());
+                customer.getAccountNumber(),customer.getBalance(),customer.getCustomerId(),
+                customer.getNomineeName(),customer.getCustomerAddress(),customer.getEmail());
     }
 }

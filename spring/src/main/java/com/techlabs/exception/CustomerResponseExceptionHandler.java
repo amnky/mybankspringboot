@@ -24,7 +24,7 @@ public class CustomerResponseExceptionHandler {
 
         return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
-    @ExceptionHandler
+    @ExceptionHandler(TransactionException.class)
     public ResponseEntity<CustomerErrorResponse> handleTransactionException(TransactionException exc) {
 
         // create a Student Error Message
@@ -36,7 +36,7 @@ public class CustomerResponseExceptionHandler {
 
         // return ResponseEntity
 
-        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler
@@ -52,6 +52,19 @@ public class CustomerResponseExceptionHandler {
         // return ResponseEntity
 
         return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<CustomerErrorResponse> BadCredentials(BadCredential exc) {
+
+        // create a Student Error Message
+        CustomerErrorResponse error = new CustomerErrorResponse();
+
+        error.setStatus(HttpStatus.UNAUTHORIZED.value());
+        error.setMessage(exc.getMessage());
+        error.setTimeStamp(System.currentTimeMillis());
+        // return ResponseEntity
+        return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
     }
 
     @ExceptionHandler
@@ -86,7 +99,7 @@ public class CustomerResponseExceptionHandler {
 
         // create a Student Error Message
         CustomerErrorResponse error = new CustomerErrorResponse();
-        System.out.println("printing error");
+        System.out.println("unknown error");
         error.setStatus(HttpStatus.BAD_REQUEST.value());
         error.setMessage(exc.getClass().getSimpleName());
         exc.printStackTrace();

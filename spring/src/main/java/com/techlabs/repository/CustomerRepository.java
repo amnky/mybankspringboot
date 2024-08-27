@@ -37,4 +37,6 @@ public interface CustomerRepository extends JpaRepository<Customer,Integer> {
 
     Page<Customer> findByIsActiveFalse(Pageable pageable);
 
+    @Query("Select c.balance from Customer c where c.customerId=:customerId and c.isActive=true")
+    int findBalanceByCustomerId(@Param("customerId") int customerId);
 }

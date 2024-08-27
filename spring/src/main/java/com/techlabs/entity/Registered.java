@@ -5,9 +5,15 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import lombok.*;
 
 @Entity
 @Table(name = "registered")
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@ToString
 public class Registered {
 
     @Id
@@ -40,9 +46,11 @@ public class Registered {
     @NotBlank
     private String uniqueIdentificationNumber;
 
+    @Column(name="is_uploaded")
+    private Boolean isUploaded;
+    @Column(name="doc_extension")
+    private String docExtension;
 
-    public Registered() {
-    }
     public Registered( String firstName, String lastName, String nomineeName, String address,String email,String uniqueIdentificationNumber) {
         this.firstName = firstName;
         this.lastName = lastName;
@@ -50,84 +58,5 @@ public class Registered {
         this.address = address;
         this.email=email;
         this.uniqueIdentificationNumber=uniqueIdentificationNumber;
-    }
-
-    public Registered(int id, String firstName, String lastName, String nomineeName, String address,String email,String uniqueIdentificationNumber) {
-        this.id = id;
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.nomineeName = nomineeName;
-        this.address = address;
-        this.email=email;
-        this.uniqueIdentificationNumber=uniqueIdentificationNumber;
-    }
-    // Getters and Setters
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public String getFirstName() {
-        return firstName;
-    }
-
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
-
-    public String getNomineeName() {
-        return nomineeName;
-    }
-
-    public void setNomineeName(String nomineeName) {
-        this.nomineeName = nomineeName;
-    }
-
-    public String getAddress() {
-        return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getUniqueIdentificationNumber() {
-        return uniqueIdentificationNumber;
-    }
-
-    public void setUniqueIdentificationNumber(String uniqueIdentificationNumber) {
-        this.uniqueIdentificationNumber = uniqueIdentificationNumber;
-    }
-
-    @Override
-    public String toString() {
-        return "Registered{" +
-                "id=" + id +
-                ", firstName='" + firstName + '\'' +
-                ", lastName='" + lastName + '\'' +
-                ", nomineeName='" + nomineeName + '\'' +
-                ", address='" + address + '\'' +
-                ", email='" + email + '\'' +
-                '}';
     }
 }

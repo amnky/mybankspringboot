@@ -12,5 +12,5 @@ public interface AuthenticationService {
 
     int registerUser(CustomerDTO customerDTO) throws IOException;
 
-    void uploadandStorefile(int registeredId, MultipartFile file) throws IOException;
+    void uploadandStorefile(int registeredId, int uniqueId, MultipartFile file) throws IOException;
 }

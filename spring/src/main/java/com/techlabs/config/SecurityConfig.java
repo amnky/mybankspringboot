@@ -10,9 +10,13 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.channel.ChannelProcessingFilter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import com.techlabs.security.JwtAuthenticationEntryPoint;
 import com.techlabs.security.JwtAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
 
 @Configuration
 //@EnableMethodSecurity
@@ -41,21 +45,33 @@ public class SecurityConfig {
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
+        CorsConfiguration corsConfiguration = new CorsConfiguration();
+        corsConfiguration.addAllowedOrigin("http://localhost:3000"); // Adjust this as needed for your frontend URL
+        corsConfiguration.addAllowedMethod("*");
+        corsConfiguration.addAllowedHeader("*");
+
+        // Apply CORS configuration to the source
+        UrlBasedCorsConfigurationSource corsConfigurationSource = new UrlBasedCorsConfigurationSource();
+        corsConfigurationSource.registerCorsConfiguration("/**", corsConfiguration);
+
+        // Add the CORS filter
+        http.addFilterBefore(new CorsFilter(corsConfigurationSource), ChannelProcessingFilter.class);
+
+
         http.csrf((csrf) -> csrf.disable())
                 .authorizeHttpRequests((authorize) ->
                                 authorize
-//                        .requestMatchers(HttpMethod.GET, "/api/students/**").permitAll()
                                         .requestMatchers(HttpMethod.POST, "/api/admin/**").hasRole("ADMIN")
                                         .requestMatchers(HttpMethod.GET, "/api/admin/**").hasRole("ADMIN")
                                         .requestMatchers(HttpMethod.DELETE, "/api/admin/**").hasRole("ADMIN")
                                         .requestMatchers(HttpMethod.PUT, "/api/admin/**").hasRole("ADMIN")
                                         .requestMatchers(HttpMethod.PATCH, "/api/admin/**").hasRole("ADMIN")
 
-                                        .requestMatchers(HttpMethod.POST, "/api/customer/**").hasRole("CUSTOMER")
-                                        .requestMatchers(HttpMethod.GET, "/api/customer/**").hasRole("CUSTOMER")
+                                        .requestMatchers(HttpMethod.POST, "/api/customer/**").hasAnyRole("CUSTOMER", "ADMIN")
+                                        .requestMatchers(HttpMethod.GET, "/api/customer/**").hasAnyRole("CUSTOMER", "ADMIN")
                                         .requestMatchers(HttpMethod.DELETE, "/api/customer/**").hasRole("ADMIN")
-                                        .requestMatchers(HttpMethod.PUT, "/api/customer/**").hasRole("CUSTOMER")
-                                        .requestMatchers(HttpMethod.PATCH, "/api/customer/**").hasRole("CUSTOMER")
+                                        .requestMatchers(HttpMethod.PUT, "/api/customer/**").hasAnyRole("CUSTOMER", "ADMIN")
+                                        .requestMatchers(HttpMethod.PATCH, "/api/customer/**").hasAnyRole("CUSTOMER", "ADMIN")
                                         .requestMatchers("/api/auth/**").permitAll()
                                         .requestMatchers("/swagger-ui/**","/v3/api-docs").permitAll()
                                         .anyRequest().authenticated()
@@ -75,4 +91,6 @@ public class SecurityConfig {
         return (web) -> web.ignoring()
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**");
     }
+
+
 }

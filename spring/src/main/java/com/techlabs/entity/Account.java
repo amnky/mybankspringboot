@@ -4,6 +4,9 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import org.springframework.format.annotation.DateTimeFormat;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Data
@@ -24,41 +27,12 @@ public class Account {
     @Column(name = "customer_id")
     @NotNull(message = "customerId can't be null")
     private int customerId;
+
     @Column(name = "unique_identification_number")
     @NotBlank(message = "unique identification number can't be null")
     private String uniqueIdentificationNumber;
 
-
-    public int getAccountNumber() {
-        return AccountNumber;
-    }
-
-    public void setAccountNumber(int accountNumber) {
-        AccountNumber = accountNumber;
-    }
-
-    public int getCustomerId() {
-        return customerId;
-    }
-
-    public void setCustomerId(int customerId) {
-        this.customerId = customerId;
-    }
-
-    public String getUniqueIdentificationNumber() {
-        return uniqueIdentificationNumber;
-    }
-
-    public void setUniqueIdentificationNumber(String uniqueIdentificationNumber) {
-        this.uniqueIdentificationNumber = uniqueIdentificationNumber;
-    }
-
-    @Override
-    public String toString() {
-        return "Account{" +
-                "AccountNumber=" + AccountNumber +
-                ", customerId=" + customerId +
-                ", uniqueIdentificationNumber=" + uniqueIdentificationNumber +
-                '}';
-    }
+    @ManyToOne
+    @JoinColumn(name = "customer_id")
+    private Customer customer;
 }
